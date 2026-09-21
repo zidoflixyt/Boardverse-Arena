@@ -196,8 +196,8 @@ main{position:relative;min-height:0;min-width:0;overflow:hidden}
 @media (orientation:landscape) and (max-height:520px){
   .arena .dock-row{grid-template-columns:1fr 1fr}.arena .dock-row .center-col{grid-column:1 / -1;grid-row:1}
 }
-@media (max-width:430px){.tab{gap:4px;font-size:12px}.tab svg{width:1.1em;height:1.1em}}
-@media (max-width:380px){.dock{padding:4px 5px 4px 8px;gap:6px}.dock.right{padding:4px 8px 4px 5px}.die{width:40px;height:40px;padding:7px}.dock .who b{font-size:13px}}
+@media (max-width:430px){.brand{min-width:0}.brand-name{font-size:17px;overflow:hidden;text-overflow:ellipsis}.tools{gap:5px}.icon-btn{width:36px;height:36px}.tab{gap:4px;font-size:12px}.tab svg{width:1.1em;height:1.1em}}
+@media (max-width:380px){.brand-name{font-size:15px}.dock{padding:4px 5px 4px 8px;gap:6px}.dock.right{padding:4px 8px 4px 5px}.die{width:40px;height:40px;padding:7px}.dock .who b{font-size:13px}}
 
 /* ---------- Snakes HUD ---------- */
 .chips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
@@ -299,6 +299,35 @@ input[type=range]:disabled{opacity:.35}
   .ranks{grid-template-columns:1fr 1fr;margin:8px 0 10px;gap:6px}.rk{padding:6px 10px;gap:8px}.rk.r1{padding:8px 10px}.rk .medal{font-size:18px;min-width:26px}.rk.r1 .medal{font-size:22px}.rk b,.rk.r1 b{font-size:15px}
   .cel-card .acts{grid-template-columns:1fr 1fr}
 }
+
+/* ---------- Neon hip-hop disco (board lights, strobe, dancing docks) ---------- */
+.stage.party{overflow:visible}
+.board.disco{animation:neonBorder 1.8s linear infinite}
+.board.disco>canvas:first-child{filter:saturate(1.35) contrast(1.06)}
+.disco-fx{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;border-radius:inherit;--beat:0;--hue:0;animation:fxin .35s ease-out}
+.disco-fx[hidden]{display:none}
+.disco-fx.out{animation:fxout .6s ease-in forwards}
+.disco-fx .beams{position:absolute;inset:-45%;mix-blend-mode:screen;opacity:calc(.32 + var(--beat) * .4);animation:spin 7s linear infinite;
+  background:conic-gradient(from 0deg,transparent 0 6%,rgba(255,43,214,.55) 8% 12%,transparent 14% 30%,rgba(47,230,255,.5) 32% 36%,transparent 38% 55%,rgba(255,201,60,.45) 57% 61%,transparent 63% 80%,rgba(122,92,255,.55) 82% 86%,transparent 88%)}
+.disco-fx .wash{position:absolute;inset:0;mix-blend-mode:screen;opacity:calc(var(--beat) * .5);
+  background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.5),transparent 62%),hsl(var(--hue) 100% 58% / .32)}
+.disco-fx .party-canvas{position:absolute;inset:0;width:100%;height:100%}
+.disco-fx .banner{position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:999px;background:rgba(10,6,30,.85);
+  border:1px solid #ff2bd6;box-shadow:0 0 22px #ff2bd6;font:700 13px var(--f-display);white-space:nowrap;animation:bannerPulse .9s ease-in-out infinite alternate}
+.disco-fx .skip{position:absolute;right:10px;bottom:10px;pointer-events:auto;height:30px;padding:0 14px;border-radius:999px;background:rgba(10,6,30,.85);color:#fff;font-weight:700;font-size:12px;border:1px solid var(--line2)}
+.dock-row.party .die{animation:boogie .6s ease-in-out infinite alternate}
+@keyframes neonBorder{
+  0%{box-shadow:0 0 0 2px #ff2bd6,0 0 26px 4px #ff2bd6,0 0 70px 10px rgba(255,43,214,.45)}
+  25%{box-shadow:0 0 0 2px #2fe6ff,0 0 26px 4px #2fe6ff,0 0 70px 10px rgba(47,230,255,.45)}
+  50%{box-shadow:0 0 0 2px #ffc93c,0 0 26px 4px #ffc93c,0 0 70px 10px rgba(255,201,60,.45)}
+  75%{box-shadow:0 0 0 2px #7a5cff,0 0 26px 4px #7a5cff,0 0 70px 10px rgba(122,92,255,.5)}
+  100%{box-shadow:0 0 0 2px #ff2bd6,0 0 26px 4px #ff2bd6,0 0 70px 10px rgba(255,43,214,.45)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fxin{from{opacity:0}}
+@keyframes fxout{to{opacity:0}}
+@keyframes bannerPulse{to{transform:translateX(-50%) scale(1.06)}}
+@keyframes boogie{from{transform:rotate(-9deg) translateY(0)}to{transform:rotate(9deg) translateY(-4px) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.disco-fx .beams{animation:none}.board.disco{animation:none;box-shadow:0 0 0 2px #ff2bd6,0 0 26px 4px #ff2bd6}.dock-row.party .die{animation:none}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
 </style>
 </head>
@@ -320,6 +349,8 @@ input[type=range]:disabled{opacity:.35}
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5l11 6.5-11 6.5z" fill="currentColor"/></symbol>
     <symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8.5" width="14" height="10.5" rx="3"/><path d="M12 8.5V5M9.2 13.5h.01M14.8 13.5h.01" stroke-width="2.6"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></symbol>
+    <symbol id="i-voice" viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.8"/></symbol>
+    <symbol id="i-voice-off" viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M3.5 3.5l17 17"/></symbol>
     <symbol id="i-theme" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2-.5-1.3.2-2.5 1.7-2.5H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><path d="M7.5 11h.01M10 7.5h.01M14.5 7.5h.01" stroke-width="2.6"/></symbol>
   </defs>
 </svg>
@@ -331,6 +362,7 @@ input[type=range]:disabled{opacity:.35}
       <span class="brand-name">Boardverse Arena</span>
     </button>
     <div class="tools">
+      <button class="icon-btn" id="btn-voices" aria-label="Meme voices on" aria-pressed="true"><svg class="i"><use href="#i-voice"/></svg></button>
       <button class="icon-btn" id="btn-sound" aria-label="Sound on" aria-pressed="true"><svg class="i"><use href="#i-sound"/></svg></button>
       <button class="icon-btn" id="btn-full" aria-label="Fullscreen"><svg class="i"><use href="#i-expand"/></svg></button>
     </div>
@@ -421,7 +453,13 @@ input[type=range]:disabled{opacity:.35}
           <div class="center-col"><div class="status"><span class="dot"></span><span class="t" data-role="status">Roll</span></div></div>
           <button class="dock right" data-color="green" style="--c:var(--green)" aria-label="Green dice"><span class="who"><b>Green</b><small>Bot</small></span><span class="die" data-v="6"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
         </div>
-        <div class="stage"><div class="board"><canvas aria-label="Ludo board"></canvas></div></div>
+        <div class="stage"><div class="board"><canvas aria-label="Ludo board"></canvas>
+          <div class="disco-fx" data-role="disco" hidden>
+            <div class="beams"></div><div class="wash"></div>
+            <canvas class="party-canvas" aria-hidden="true"></canvas>
+            <div class="banner" data-role="banner"></div>
+            <button class="skip" data-act="skip-disco">Skip</button>
+          </div></div></div>
         <div class="ctrl dock-row">
           <button class="dock" data-color="blue" style="--c:var(--blue)" aria-label="Blue dice"><span class="who"><b>Blue</b><small>Bot</small></span><span class="die" data-v="6"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
           <div class="center-col"><div class="tool-row">
@@ -961,6 +999,493 @@ const Router = {
 };
 
 /* ==========================================================================
+   MEME VOICES: config, smart shuffle, placeholder clips, AudioManager
+   --------------------------------------------------------------------------
+   HOW THE SYNC WORKS (the strict rule): a reaction never owns a timer. It owns a
+   *playback*. The HTMLAudioElement's own events drive the token:
+     'playing'  -> reaction starts (duration = el.duration, the clip's real length)
+     'ended'    -> reaction ends, token is idle again on the very same event
+   Failure paths ('error', 'pause', blocked, start-watchdog) end the reaction the
+   same way, so a token can never be stuck in an emotion.
+   ========================================================================== */
+const MEMES_CONFIG = {
+  // Paste your hosted clip URLs (mp3 / m4a recommended). An empty pool falls back to a
+  // built-in placeholder clip, so every reaction still works before you add real audio.
+  packs: {
+    spawnMemes: [],      // a token leaves the yard (rolled a 6)
+    killMemes: [],       // the killer laughs
+    deathMemes: [],      // the captured token screams
+    dangerMemes: [],     // a token has a rival 1-6 steps behind it
+    safeMemes: [],       // relief on a star square
+    homeMemes: [],       // a token reaches the centre triangle
+    firstWinMemes: [],   // 1st place disco track (any length, ~10-16 s is typical)
+    secondWinMemes: []   // 2nd place disco track
+  },
+  crossOrigin: false,    // true ONLY if your host sends CORS headers: enables real audio-level lip-sync + beat detection
+  discoBpm: 96,          // dance beat is locked to playback position at this tempo when beat detection is unavailable
+  startTimeoutMs: 6000   // network watchdog: a clip that has not started playing by then is abandoned (not a reaction timer)
+};
+
+/* Smart non-repeating shuffle: a shuffled "bag" is emptied before refilling, and a refill can
+   never start with the clip that was just played. */
+function createShuffleBag(list) {
+  let bag = [], last = null;
+  return {
+    next() {
+      if (!list.length) return null;
+      if (list.length === 1) return (last = list[0]);
+      if (!bag.length) {
+        bag = list.slice();
+        for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = bag[i]; bag[i] = bag[j]; bag[j] = t; }
+        if (bag[bag.length - 1] === last) { const t = bag[0]; bag[0] = bag[bag.length - 1]; bag[bag.length - 1] = t; }
+      }
+      return (last = bag.pop());
+    }
+  };
+}
+
+/* Placeholder clips: real WAV blobs synthesised on demand, so they travel through the same
+   HTMLAudioElement duration/ended pipeline as your hosted memes (and have different lengths). */
+const Synth = (() => {
+  const SR = 22050, cache = {}, N = () => Math.random() * 2 - 1;
+  const formant = (f) => Math.exp(-Math.pow((f - 800) / 320, 2)) + .6 * Math.exp(-Math.pow((f - 1500) / 420, 2));
+  function toWav(f) {
+    const n = f.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+    v.setUint16(22, 1, true); v.setUint32(24, SR, true); v.setUint32(28, SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    w(36, 'data'); v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, clamp(f[i], -1, 1) * 32767, true);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  function render(dur, fn) {
+    const n = Math.floor(SR * dur), out = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const t = i / SR; out[i] = Math.tanh(fn(t) * Math.min(1, t * 90, (dur - t) * 25)); }
+    return out;
+  }
+  function beat(dur, bpm, variant) {
+    const step = 60 / bpm / 4, KICK = [1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0], SNARE = [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1];
+    const HAT = [1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,1], BASS = variant ? [55, 65.4, 49, 73.4] : [55, 55, 65.4, 49], STAB = [2, 7, 10, 14], LEAD = [392, 466, 523, 392];
+    let prev = 0;
+    return render(dur, (t) => {
+      const si = Math.floor(t / step), s = si % 16, bar = Math.floor(si / 16), ts = t - si * step, bt = t - bar * 16 * step;
+      let o = 0;
+      if (KICK[s]) o += Math.sin(TAU * (48 + 110 * Math.exp(-ts * 38)) * ts) * Math.exp(-ts * 7);
+      if (SNARE[s]) o += (N() * .6 + Math.sin(TAU * 185 * ts) * .4) * Math.exp(-ts * 18) * .7;
+      if (HAT[s]) { const nz = N(), hp = nz - prev; prev = nz; o += hp * Math.exp(-ts * 55) * .22 * (s % 4 === 2 ? 1.4 : 1); }
+      o += Math.sin(TAU * BASS[bar % 4] * t) * .38 * Math.min(1, bt * 60) * (.65 + .35 * Math.exp(-bt * 3));
+      const k = STAB.indexOf(s); if (k >= 0) o += (Math.sin(TAU * LEAD[k] * ts) > 0 ? 1 : -1) * Math.exp(-ts * 14) * .12;
+      return o * .85;
+    });
+  }
+  const recipes = {
+    spawnMemes: () => render(1.5, (t) => {
+      const f = 90 + 140 * Math.min(1, t / .7);
+      return Math.sin(TAU * f * t + Math.sin(t * 30) * .6) * Math.exp(-Math.max(0, t - .7) * 3) * .6
+        + (t > .55 && t < .75 ? N() * Math.exp(-(t - .55) * 60) * .6 : 0) + (t > 1 && t < 1.2 ? N() * Math.exp(-(t - 1) * 60) * .6 : 0);
+    }),
+    killMemes: () => render(2.6, (t) => {
+      let s = 0;
+      [[.1, 260], [.55, 240], [1, 225], [1.45, 210], [1.85, 190]].forEach(([st, f0]) => {
+        const u = t - st; if (u < 0 || u > .3) return;
+        const env = Math.sin(Math.PI * u / .3), f = f0 * (1 + .06 * Math.sin(u * 40)); let v = 0;
+        for (let k = 1; k <= 12; k++) v += Math.sin(TAU * f * k * u) * formant(f * k) / k;
+        s += v * env * 1.1;
+      });
+      return s * .5;
+    }),
+    deathMemes: () => { let ph = 0; return render(1.9, (t) => {
+      const env = Math.min(1, t * 12) * Math.exp(-Math.max(0, t - 1.3) * 4), f = 520 + 380 * Math.sin(Math.min(1, t / 1.2) * Math.PI * .8) + 25 * Math.sin(t * 50);
+      ph += f / SR; let v = 0;
+      for (let k = 1; k <= 10; k++) v += Math.sin(TAU * ph * k) * formant(f * k) / k;
+      return (v * 1.4 + N() * .12) * env * .9;
+    }); },
+    dangerMemes: () => render(3.1, (t) => {
+      const bt = t % .95;
+      const th = (bt < .14 ? Math.sin(TAU * 58 * bt) * Math.exp(-bt * 30) : 0) + (bt > .28 && bt < .42 ? Math.sin(TAU * 52 * (bt - .28)) * Math.exp(-(bt - .28) * 30) * .8 : 0);
+      return th * 1.1 + Math.sin(TAU * (880 + t * 120) * t) * .07 * (.5 + .5 * Math.sin(t * TAU * 9)) * Math.min(1, t / 1.5);
+    }),
+    safeMemes: () => { let lp = 0; return render(1.7, (t) => {
+      lp += (N() - lp) * .25;
+      return lp * .5 * Math.sin(Math.PI * Math.min(1, t / 1.2)) + Math.sin(TAU * (520 - 160 * t) * t) * .15 * Math.exp(-t * 1.5);
+    }); },
+    homeMemes: () => render(2.3, (t) => {
+      let s = 0;
+      [523, 659, 784, 1047].forEach((f, i) => { const u = t - i * .16; if (u > 0) s += (Math.sin(TAU * f * u) + .3 * Math.sin(TAU * 2 * f * u)) * Math.exp(-u * (t < .7 ? 6 : 1.4)) * .3; });
+      return s;
+    }),
+    firstWinMemes: () => beat(12.6, MEMES_CONFIG.discoBpm, 0),
+    secondWinMemes: () => beat(9.4, MEMES_CONFIG.discoBpm, 1)
+  };
+  return { url(cat) { if (!cache[cat]) cache[cat] = toWav((recipes[cat] || recipes.spawnMemes)()); return cache[cat]; } };
+})();
+
+const Voices = (() => {
+  const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  const chans = {}, bags = {};
+  let on = store.get('bva.voices') !== '0', unlocked = false, actx = null;
+  const pool = (cat) => (MEMES_CONFIG.packs[cat] || []).filter(Boolean);
+  const bag = (cat) => { const sig = pool(cat).join('|'); return (bags[cat] && bags[cat].sig === sig ? bags[cat] : (bags[cat] = { sig, b: createShuffleBag(pool(cat)) })).b; };
+  function chan(name) {
+    if (chans[name]) return chans[name];
+    const el = new Audio(); el.preload = 'auto'; el.setAttribute('playsinline', '');
+    if (MEMES_CONFIG.crossOrigin) el.crossOrigin = 'anonymous';
+    return (chans[name] = { name, el, cur: null, an: null, buf: null, fbuf: null });
+  }
+  /* First user gesture: unlock every channel element (mobile browsers only let an element that
+     was play()ed inside a gesture play later), and warm the cache for hosted clips. */
+  function unlock() {
+    if (unlocked) return; unlocked = true;
+    ['main', 'aux', 'disco'].forEach((n) => {
+      const c = chan(n); c.el.muted = true; c.el.src = SILENT;
+      const p = c.el.play(); if (p && p.then) p.then(() => { if (!c.cur) c.el.pause(); }).catch(() => {});
+    });
+    if (MEMES_CONFIG.crossOrigin) {
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        Object.keys(chans).forEach((n) => {
+          const c = chans[n], src = actx.createMediaElementSource(c.el);
+          c.an = actx.createAnalyser(); c.an.fftSize = 256; c.buf = new Uint8Array(c.an.fftSize); c.fbuf = new Uint8Array(c.an.frequencyBinCount);
+          src.connect(c.an); c.an.connect(actx.destination);
+        });
+        actx.resume().catch(() => {});
+      } catch (e) { actx = null; }
+    }
+    warm();
+  }
+  function warm() {                                   // pre-buffer a few hosted clips per pool into the HTTP cache
+    if (!on || (navigator.connection && navigator.connection.saveData)) return;
+    const urls = []; Object.keys(MEMES_CONFIG.packs).forEach((k) => pool(k).slice(0, 3).forEach((u) => urls.push(u)));
+    const go = () => { const u = urls.shift(); if (!u) return; fetch(u, { mode: 'no-cors', cache: 'force-cache' }).catch(() => {}).then(() => setTimeout(go, 250)); };
+    if (urls.length) setTimeout(go, 1500);
+  }
+  function play(cat, o = {}) {
+    const c = chan(o.channel || 'main'), prio = o.priority || 1;
+    if (c.cur) { if (prio > c.cur.priority) c.cur.stop('preempted'); else return null; }   // non-blocking: lower priority is simply skipped
+    const el = c.el;
+    const tries = [];
+    if (on && pool(cat).length) tries.push({ url: bag(cat).next(), real: true });
+    tries.push({ url: Synth.url(cat), real: false });                                        // placeholder (also used, muted, when voices are off)
+    let idx = 0, watch = 0, attemptId = 0;
+    const pb = {
+      cat, priority: prio, channel: c.name, url: '', real: false, started: false, ended: false, duration: NaN,
+      time: () => el.currentTime || 0,
+      progress: () => (el.duration > 0 && isFinite(el.duration) ? clamp(el.currentTime / el.duration, 0, 1) : 0),
+      hasAnalyser: !!c.an,
+      level() {
+        if (!pb.started || pb.ended) return 0;
+        if (c.an) { c.an.getByteTimeDomainData(c.buf); let s = 0; for (let i = 0; i < c.buf.length; i++) { const d = (c.buf[i] - 128) / 128; s += d * d; } return clamp(Math.sqrt(s / c.buf.length) * 3.4, 0, 1); }
+        const t = el.currentTime; return el.paused ? 0 : .35 + .65 * Math.abs(Math.sin(t * 17.3 + Math.sin(t * 5.1) * 2));
+      },
+      energy() { if (!c.an) return 0; c.an.getByteFrequencyData(c.fbuf); let s = 0; for (let i = 1; i < 6; i++) s += c.fbuf[i]; return s / 5 / 255; },
+      stop(reason) { if (pb.ended) return; try { el.pause(); } catch (e) { /* ignore */ } finish(reason || 'stopped'); }
+    };
+    c.cur = pb;
+    const clean = () => { el.onplaying = el.onended = el.onerror = el.onpause = null; clearTimeout(watch); };
+    function finish(reason) {
+      if (pb.ended) return; pb.ended = true; clean();
+      if (c.cur === pb) c.cur = null;
+      if (o.onEnd) o.onEnd(reason, pb);
+    }
+    function fail(reason) {
+      if (pb.started || pb.ended) return;
+      if (++idx < tries.length) attempt(); else finish(reason);
+    }
+    function attempt() {
+      clean();
+      const my = ++attemptId;                                          // late events/promises from an abandoned attempt must not touch the next one
+      const t = tries[idx]; pb.url = t.url; pb.real = t.real;
+      el.muted = !on; el.volume = 1;
+      el.onplaying = () => {
+        if (pb.started || pb.ended) return; pb.started = true; clearTimeout(watch); pb.duration = el.duration;
+        if (o.onStart) o.onStart({ duration: el.duration, real: pb.real, pb });
+      };
+      el.onended = () => finish('ended');                              // <- the exact moment the reaction stops
+      el.onerror = () => { if (my !== attemptId) return; if (pb.started) finish('error'); else fail('error'); };
+      el.onpause = () => { if (pb.started && !el.ended) finish('paused'); };
+      watch = setTimeout(() => { if (my === attemptId) fail('timeout'); }, MEMES_CONFIG.startTimeoutMs);
+      if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+      el.src = t.url;
+      const pr = el.play(); if (pr && pr.catch) pr.catch(() => { if (my === attemptId) fail('blocked'); });
+    }
+    attempt();
+    return pb;
+  }
+  function stopAll(reason) { Object.keys(chans).forEach((n) => { const p = chans[n].cur; if (p) p.stop(reason || 'stopped'); }); }
+  return {
+    get enabled() { return on; },
+    unlock, play, stopAll, pool,
+    setEnabled(v) { on = !!v; store.set('bva.voices', on ? '1' : '0'); Object.keys(chans).forEach((n) => { chans[n].el.muted = !on; }); if (on) warm(); return on; },
+    toggle() { return this.setEnabled(!on); }
+  };
+})();
+
+/* Token emotions: a reaction = one audio playback + the tokens that show a face for exactly that long. */
+const Emotions = (() => {
+  const groups = new Set(); let kick = () => {};
+  return {
+    bind(fn) { kick = fn || (() => {}); },
+    busy: () => groups.size > 0,
+    react({ cat, channel = 'main', priority = 1, members, onStart, onEnd }) {
+      if (!members || !members.length) return null;
+      let g = null;
+      const pb = Voices.play(cat, {
+        channel, priority,
+        onStart: (info) => {
+          members.forEach((m) => { m.tok.emo = { state: m.state, t0: now(), g }; });
+          groups.add(g); if (onStart) onStart(info); kick();
+        },
+        onEnd: (reason) => {                                           // audio finished -> back to idle immediately
+          members.forEach((m) => { if (m.tok.emo && m.tok.emo.g === g) m.tok.emo = null; });
+          groups.delete(g); if (onEnd) onEnd(reason); kick();
+        }
+      });
+      if (!pb) return null;
+      g = { pb, members, cat };
+      return g;
+    },
+    clear(reason) { Voices.stopAll(reason || 'clear'); }
+  };
+})();
+
+/* ==========================================================================
+   LIVING FACE TOKENS (canvas). Rounded 3D-style cubes with expressive faces.
+   Every animation is a pure function of the AUDIO clock (pb.time / pb.progress /
+   pb.level), so a face lasts exactly as long as its clip and never has its own timer.
+   ========================================================================== */
+const Faces = (() => {
+  const INK = '#181236', SKIN = '#ffd3a6';
+  const ease = (t) => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+  const lw = (g, w, style) => { g.lineWidth = w; g.strokeStyle = style || INK; g.lineCap = 'round'; g.lineJoin = 'round'; };
+
+  function eye(g, x, y, open, px = 0, py = 0, big = 1, red = false) {
+    if (open < .16) { lw(g, .08); g.beginPath(); g.moveTo(x - .17, y + .02); g.quadraticCurveTo(x, y + .1, x + .17, y + .02); g.stroke(); return; }
+    g.beginPath(); g.ellipse(x, y, .19 * big, .245 * big * open, 0, 0, TAU); g.fillStyle = red ? '#ffe3e3' : '#fff'; g.fill(); lw(g, .03, 'rgba(24,18,54,.6)'); g.stroke();
+    const pr = .105 * big, ex = x + px * .07, ey = y + py * .08;
+    g.beginPath(); g.arc(ex, ey, pr, 0, TAU); g.fillStyle = INK; g.fill();
+    g.beginPath(); g.arc(ex - pr * .35, ey - pr * .38, pr * .34, 0, TAU); g.fillStyle = '#fff'; g.fill();
+  }
+  const happyEye = (g, x, y, w = .17) => { lw(g, .09); g.beginPath(); g.arc(x, y + .07, w, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); };
+  const brow = (g, x, y, ang, w = .3, th = .08) => { g.save(); g.translate(x, y); g.rotate(ang); lw(g, th); g.beginPath(); g.moveTo(-w / 2, 0); g.lineTo(w / 2, 0); g.stroke(); g.restore(); };
+  const smile = (g, w, curve, y = .34, th = .09) => { lw(g, th); g.beginPath(); g.moveTo(-w, y); g.quadraticCurveTo(0, y + curve, w, y); g.stroke(); };
+  function mouthOpen(g, w, h, teeth = true, tongue = true) {
+    g.save(); g.beginPath(); g.moveTo(-w, .3); g.bezierCurveTo(-w * .95, .3 + h * 1.5, w * .95, .3 + h * 1.5, w, .3); g.quadraticCurveTo(0, .3 + Math.min(.06, h * .2), -w, .3); g.closePath();
+    g.fillStyle = '#3b0a24'; g.fill(); g.clip();
+    if (tongue) { g.beginPath(); g.ellipse(0, .3 + h * 1.15, w * .55, h * .42, 0, 0, TAU); g.fillStyle = '#ff6b8b'; g.fill(); }
+    if (teeth) { g.fillStyle = '#fff'; g.fillRect(-w, .27, w * 2, Math.max(.05, h * .3)); }
+    g.restore(); lw(g, .06); g.beginPath(); g.moveTo(-w, .3); g.bezierCurveTo(-w * .95, .3 + h * 1.5, w * .95, .3 + h * 1.5, w, .3); g.quadraticCurveTo(0, .3 + Math.min(.06, h * .2), -w, .3); g.stroke();
+  }
+  function glasses(g) {
+    [-1, 1].forEach((s) => {
+      roundRect(g, s * .34 - .25, -.24, .5, .3, .1); g.fillStyle = '#0a0a14'; g.fill();
+      g.beginPath(); g.moveTo(s * .34 - .16, -.2); g.lineTo(s * .34 - .02, -.2); g.lineTo(s * .34 - .1, -.05); g.closePath(); g.fillStyle = 'rgba(255,255,255,.35)'; g.fill();
+    });
+    lw(g, .07, '#0a0a14'); g.beginPath(); g.moveTo(-.1, -.12); g.lineTo(.1, -.12); g.stroke();
+  }
+  function star(g, x, y, R, col) { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? R * .45 : R; g[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * r, y + Math.sin(a) * r); } g.closePath(); g.fillStyle = col; g.fill(); }
+  function tear(g, x, y, s) { g.beginPath(); g.moveTo(x, y - .09 * s); g.quadraticCurveTo(x + .08 * s, y + .02 * s, x, y + .08 * s); g.quadraticCurveTo(x - .08 * s, y + .02 * s, x, y - .09 * s); g.fillStyle = '#6ec8ff'; g.fill(); }
+  function crown(g, y, tilt) {
+    g.save(); g.translate(0, y); g.rotate(tilt);
+    g.beginPath(); g.moveTo(-.5, 0); g.lineTo(-.55, -.42); g.lineTo(-.25, -.2); g.lineTo(0, -.5); g.lineTo(.25, -.2); g.lineTo(.55, -.42); g.lineTo(.5, 0); g.closePath();
+    const gr = g.createLinearGradient(0, -.5, 0, 0); gr.addColorStop(0, '#fff2a8'); gr.addColorStop(1, '#f0a81c'); g.fillStyle = gr; g.fill(); lw(g, .05, '#8a5a00'); g.stroke();
+    [[-.55, -.42], [0, -.5], [.55, -.42]].forEach(([x, yy]) => { g.beginPath(); g.arc(x, yy, .06, 0, TAU); g.fillStyle = '#ff4d6d'; g.fill(); });
+    g.restore();
+  }
+  function hand(g, x, y, s, rot) {
+    g.save(); g.translate(x, y); g.rotate(rot); g.scale(s, s);
+    roundRect(g, -.3, -.05, .6, .5, .2); g.fillStyle = SKIN; g.fill(); lw(g, .04, '#b8763a'); g.stroke();
+    for (let i = 0; i < 4; i++) { roundRect(g, -.28 + i * .15, -.4, .12, .42, .06); g.fillStyle = SKIN; g.fill(); g.stroke(); }
+    g.restore();
+  }
+  function body(g, hex, glow) {
+    const S = 1.72, R = .5, D = .15;
+    roundRect(g, -S / 2, -S / 2 + D, S, S, R); g.fillStyle = shade(hex, -.55); g.fill();
+    const gr = g.createLinearGradient(0, -S / 2, 0, S / 2); gr.addColorStop(0, shade(hex, .42)); gr.addColorStop(.5, hex); gr.addColorStop(1, shade(hex, -.28));
+    roundRect(g, -S / 2, -S / 2, S, S, R); g.fillStyle = gr; g.fill(); lw(g, .06, 'rgba(255,255,255,.4)'); g.stroke();
+    g.beginPath(); g.ellipse(-.3, -.62, .34, .12, -.25, 0, TAU); g.fillStyle = 'rgba(255,255,255,.3)'; g.fill();
+    if (glow) { g.save(); roundRect(g, -S / 2, -S / 2, S, S, R); g.clip(); g.fillStyle = glow; g.fillRect(-1, -1, 2, 2); g.restore(); }
+  }
+
+  /* One face per state. T = seconds on the audio clock, lv = live mouth level (0..1), P = progress (0..1). */
+  function face(g, st, T, lv, P, id) {
+    const m = .3 + .7 * lv;
+    switch (st) {
+      case 'swagger': {
+        eye(g, -.34, -.06, .5, 1, 0); eye(g, .34, -.06, .5, 1, 0);
+        lw(g, .1); g.beginPath(); g.moveTo(-.55, -.2); g.lineTo(-.14, -.2); g.moveTo(.14, -.2); g.lineTo(.55, -.2); g.stroke();
+        brow(g, -.34, -.42, .2, .3); brow(g, .34, -.55, -.35, .3);
+        lw(g, .095); g.beginPath(); g.moveTo(-.25, .42); g.quadraticCurveTo(.05, .46, .32, .2); g.stroke(); break;
+      }
+      case 'cheer': {
+        happyEye(g, -.34, -.1); happyEye(g, .34, -.1); mouthOpen(g, .32, .16 + .14 * m, false, true);
+        g.beginPath(); g.arc(-.6, .22, .09, 0, TAU); g.arc(.6, .22, .09, 0, TAU); g.fillStyle = 'rgba(255,90,120,.45)'; g.fill(); break;
+      }
+      case 'thug': {
+        glasses(g); mouthOpen(g, .42, .14 + .2 * m, true, true); break;
+      }
+      case 'rage': {
+        eye(g, -.34, -.06, 1.15, 0, 0, 1.15, true); eye(g, .34, -.06, 1.15, 0, 0, 1.15, true);
+        brow(g, -.33, -.4, .55, .36, .1); brow(g, .33, -.4, -.55, .36, .1); mouthOpen(g, .4, .2 + .15 * m, true, true); break;
+      }
+      case 'cry': {
+        eye(g, -.34, -.06, .3); eye(g, .34, -.06, .3);
+        brow(g, -.34, -.34, -.35, .3); brow(g, .34, -.34, .35, .3);
+        lw(g, .085); g.beginPath(); g.moveTo(-.28, .48); g.quadraticCurveTo(-.14, .3 + .05 * Math.sin(T * 14), 0, .42); g.quadraticCurveTo(.14, .3 + .05 * Math.sin(T * 14 + 1), .28, .48); g.stroke();
+        for (let i = 0; i < 3; i++) [-1, 1].forEach((s) => { const u = (T * 1.3 + i / 3) % 1; tear(g, s * (.34 + .06 * (i % 2)), .06 + u * .6, 1.2 - u * .5); }); break;
+      }
+      case 'facepalm': {
+        eye(g, -.34, -.05, .25); eye(g, .34, -.05, .8, .5, .5); lw(g, .085); g.beginPath(); g.moveTo(-.22, .42); g.lineTo(.22, .42); g.stroke();
+        hand(g, -.12, -.26 + Math.sin(T * 5) * .02, 1.15, -.12); break;
+      }
+      case 'panic': {
+        eye(g, -.34, -.08, 1.2, Math.sin(T * 30), Math.cos(T * 27), .95); eye(g, .34, -.08, 1.2, Math.cos(T * 33), Math.sin(T * 29), .95);
+        brow(g, -.34, -.42, -.4, .3); brow(g, .34, -.42, .4, .3);
+        lw(g, .08); g.beginPath(); g.moveTo(-.3, .42); for (let i = 1; i <= 6; i++) g.lineTo(-.3 + i * .1, .42 + (i % 2 ? -.07 : .05)); g.stroke();
+        for (let i = 0; i < 3; i++) { const u = (T * 1.6 + i / 3) % 1, s = i % 2 ? 1 : -1; tear(g, s * (.62 + u * .25), -.5 + u * .55, 1.3 * (1 - u * .4)); } break;
+      }
+      case 'relief': {
+        happyEye(g, -.34, -.1); happyEye(g, .34, -.1); smile(g, .3, .17, .34);
+        g.beginPath(); g.arc(-.6, .2, .1, 0, TAU); g.arc(.6, .2, .1, 0, TAU); g.fillStyle = 'rgba(255,90,120,.4)'; g.fill();
+        const w = (Math.sin(T * 5) + 1) / 2; hand(g, -.55 + w * 1.1, -.66, .55, .5 - w); tear(g, .68, -.46 + w * .12, 1); break;
+      }
+      case 'ecstatic': {
+        star(g, -.34, -.08, .27, '#ffe14d'); star(g, .34, -.08, .27, '#ffe14d'); mouthOpen(g, .46, .2 + .15 * m, true, true); break;
+      }
+      case 'dance': {
+        happyEye(g, -.34, -.1); happyEye(g, .34, -.1); mouthOpen(g, .36, .16 + .16 * m, id % 2 === 0, true); break;
+      }
+      default: {                                                   // idle personalities, one per token slot
+        const v = id % 4, blink = ((T + id * 1.7) % 3.4) < .13, o = blink ? .05 : 1;
+        if (v === 1) { eye(g, -.34, -.08, o); happyEye(g, .34, -.08); smile(g, .28, .17); g.beginPath(); g.ellipse(.16, .5, .09, .1, 0, 0, TAU); g.fillStyle = '#ff6b8b'; g.fill(); break; }
+        eye(g, -.34, -.08, o, v === 2 ? 1 : 0); eye(g, .34, -.08, o, v === 2 ? 1 : 0);
+        if (v === 2) { brow(g, -.33, -.4, .4, .3); brow(g, .33, -.4, -.4, .3); mouthOpen(g, .34, .13, true, false); }
+        else if (v === 3) mouthOpen(g, .3, .26, false, true);
+        else smile(g, .28, .17);
+      }
+    }
+  }
+
+  /* o: { x, y, r, hex, id, lift, emo, party:{beat,level,winner,move}, ambient, k } */
+  function drawToken(g, o) {
+    const { x, y, r, hex, id, lift = 0, emo, party, ambient = 0, k = 1 } = o;
+    let st = 'idle', T = ambient, lv = 0, P = 0, pop = 1, dx = 0, dy = 0, rot = 0, sx = 1, sy = 1, glow = null;
+    if (party) {
+      st = 'dance'; T = party.beat; lv = party.level;
+      const ph = Math.PI * T, b = Math.abs(Math.sin(ph)), mv = party.move % 3;
+      dy = -b * r * (party.winner ? .55 : .38); rot = Math.sin(ph) * (party.winner ? .3 : .22);
+      if (mv === 1) { dx = Math.sin(ph) * r * .3; rot *= .5; }
+      if (mv === 2) { sy = 1 + .22 * b; sx = 1 - .12 * b; }
+      pop = party.winner ? 1.55 : 1.22;
+    } else if (emo) {
+      st = emo.state; const pb = emo.g.pb; T = pb.time(); lv = pb.level(); P = pb.progress();
+      pop = 1 + .55 * ease((now() - emo.t0) / 140);
+      const b = Math.abs(Math.sin(T * Math.PI * 2.6));
+      if (st === 'thug') { dy = -b * r * .4; sy = 1 + .1 * b; }
+      else if (st === 'cheer') dy = -Math.abs(Math.sin(T * Math.PI * 3)) * r * .3;
+      else if (st === 'swagger') { rot = -.08; dy = -Math.abs(Math.sin(T * 5)) * r * .1; }
+      else if (st === 'rage') { dx = Math.sin(T * 55) * r * .09; dy = Math.sin(T * 47) * r * .05; glow = 'rgba(255,40,40,.28)'; }
+      else if (st === 'panic') { dx = Math.sin(T * 38) * r * .06; glow = 'rgba(230,240,255,.22)'; }
+      else if (st === 'cry') rot = Math.sin(T * 3) * .08;
+      else if (st === 'facepalm') { rot = .1; dy = r * .05; }
+      else if (st === 'ecstatic') { dy = -Math.abs(Math.sin(T * Math.PI * 2.2)) * r * .5; rot = Math.sin(T * 6) * .1; }
+    }
+    g.save();
+    g.fillStyle = 'rgba(0,0,0,.36)'; g.beginPath(); g.ellipse(x, y + r * .86, r * .82 * (party ? 1.1 : 1), r * .28, 0, 0, TAU); g.fill();
+    g.translate(x + dx, y - lift + dy); g.rotate(rot); g.scale(r * pop * sx, r * pop * sy);
+    if (party) { g.shadowColor = hex; g.shadowBlur = k * r * (.6 + .5 * (party.pulse || 0)); }
+    body(g, hex, glow);
+    g.shadowBlur = 0; g.shadowColor = 'transparent';
+    face(g, st, T, lv, P, id);
+    if (st === 'ecstatic') {                                        // crown drops onto the head during the first 14% of the clip
+      const f = clamp(P / .14, 0, 1), bounce = f < 1 ? -1.5 * (1 - ease(f)) : 0;
+      crown(g, -.86 + bounce, Math.sin(T * 4) * .08);
+      for (let i = 0; i < 3; i++) { const a = T * 3 + i * 2.1; star(g, Math.cos(a) * 1.15, -.2 + Math.sin(a) * .9, .13, '#fff2a8'); }
+    }
+    if (party && party.winner) { crown(g, -.86, Math.sin(Math.PI * T) * .1); }
+    else if (party && (id + party.move) % 2 === 0) { g.save(); g.translate(0, .08); glasses(g); g.restore(); }
+    g.restore();
+  }
+  return { drawToken, STATES: ['idle', 'swagger', 'cheer', 'thug', 'rage', 'cry', 'facepalm', 'panic', 'relief', 'ecstatic', 'dance'] };
+})();
+
+/* ==========================================================================
+   DISCO DIRECTOR: neon club lighting, confetti and the beat clock. It lasts exactly
+   as long as the victory track: it starts on the track's 'playing' event and ends on
+   its 'ended' event (or skip / error / pause), then fades out.
+   ========================================================================== */
+const Disco = (() => {
+  const COLS = ['#ff2bd6', '#2fe6ff', '#ffc93c', '#7a5cff', '#3dffb0', '#ff4d6d'];
+  let fx = null, boardEl = null, stageEl = null, rows = [], cv = null, g = null, loop = null, parts = [];
+  let pb = null, active = false, started = false, beatEnv = 0, lastBeat = -1, lastHit = 0, avg = .2, W = 0, H = 0, ending = false;
+  const reduced = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function burst(n) {
+    const x = rnd(.1, .9) * W;
+    for (let i = 0; i < n && parts.length < 320; i++) {
+      const a = -Math.PI / 2 + rnd(-.9, .9), sp = rnd(300, 800) * (H / 500);
+      parts.push({ x, y: H + 4, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rnd(0, TAU), vr: rnd(-9, 9), w: rnd(5, 9), h: rnd(8, 14), f: rnd(0, TAU), c: COLS[rint(0, COLS.length - 1)] });
+    }
+  }
+  function frame(dt) {
+    if (!g) return false;
+    g.clearRect(0, 0, W, H);
+    if (active && started && pb) {
+      const t = pb.time(), bpm = MEMES_CONFIG.discoBpm, every = bpm > 150 ? 2 : 1, bi = Math.floor(t * bpm / 60);
+      let hit = false;
+      if (pb.hasAnalyser) { const e = pb.energy(); if (e > .4 && e > avg * 1.25 && now() - lastHit > 320) { hit = true; lastHit = now(); } avg = avg * .95 + e * .05; }
+      else if (bi !== lastBeat && bi % every === 0) hit = true;
+      lastBeat = bi;
+      if (hit) { beatEnv = 1; if (!reduced()) burst(26); }
+    }
+    beatEnv = Math.max(0, beatEnv - dt * 3.2);
+    if (fx) { fx.style.setProperty('--beat', (reduced() ? beatEnv * .3 : beatEnv).toFixed(3)); fx.style.setProperty('--hue', String(Math.round((pb ? pb.time() : 0) * 45) % 360)); }
+    parts = parts.filter((p) => p.y < H + 30);
+    for (const p of parts) {
+      p.vx -= p.vx * 1.6 * dt; p.vy -= p.vy * 1.6 * dt; p.vy += 620 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt; p.f += 8 * dt;
+      g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.scale(1, Math.cos(p.f)); g.fillStyle = p.c; g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); g.restore();
+    }
+    return active || parts.length > 0 || beatEnv > 0;
+  }
+  function enter(o) {
+    started = true; ending = false; fx.hidden = false; fx.classList.remove('out');
+    boardEl.classList.add('disco'); stageEl.classList.add('party'); rows.forEach((r) => r.classList.add('party'));
+    $('[data-role=banner]', fx).textContent = o.label;
+    W = boardEl.clientWidth; H = boardEl.clientHeight; const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lastBeat = -1; avg = .2; beatEnv = 1; parts = [];
+    loop.start(); loop.kick();
+  }
+  function leave() {
+    if (!fx) return;
+    boardEl.classList.remove('disco'); stageEl.classList.remove('party'); rows.forEach((r) => r.classList.remove('party'));
+    fx.classList.add('out');
+    const done = () => { if (fx.classList.contains('out')) { fx.hidden = true; fx.classList.remove('out'); } };
+    fx.addEventListener('animationend', done, { once: true }); setTimeout(done, 800);   // cosmetic cleanup only
+  }
+  function start(o) {
+    if (active) return false;
+    fx = $('[data-role=disco]', o.board); boardEl = o.board; stageEl = o.stage; rows = o.rows || [];
+    cv = $('.party-canvas', fx); g = cv.getContext('2d'); loop = createLoop(frame);
+    active = true; started = false;
+    Voices.stopAll('party');
+    pb = Voices.play(o.rank === 1 ? 'firstWinMemes' : 'secondWinMemes', {
+      channel: 'disco', priority: 9,
+      onStart: () => enter(o),
+      onEnd: (reason) => { const was = started; active = false; started = false; if (was) leave(); pb = null; if (loop) loop.kick(); o.onEnd(reason); }
+    });
+    if (!pb) { active = false; return false; }
+    return true;
+  }
+  return {
+    start,
+    skip() { if (pb) pb.stop('skipped'); },
+    abort(reason) { if (pb) pb.stop(reason || 'aborted'); if (loop) loop.stop(); parts = []; },
+    get active() { return active; },
+    party() { return active && started && pb ? { beat: pb.time() * MEMES_CONFIG.discoBpm / 60, level: pb.level(), pulse: beatEnv } : null; }
+  };
+})();
+
+/* ==========================================================================
    LUDO
    Time-driven state machine: phase ∈ setup | await-roll | rolling |
    resolving | await-pick | moving | over. Every delay lives in `pend`, which the
@@ -998,6 +1523,7 @@ const Ludo = (() => {
   let players = [], toks = {}, turn = 0, phase = 'setup', ui = 'setup', paused = false;
   let dice = 6, sixes = 0, movable = [], lastRoll = {}, pend = null, moving = null, bonusNote = false;
   let finished = [];                    // colours in the order they got all four tokens home
+  let frozen = false, frozenAt = 0, partyAfter = null, partyWinner = null, lastFrom = 0;   // disco pause (1st / 2nd place)
   let rollUntil = 0, flickAt = 0, pulse = 0, fx = [];
   let scope = null, B = null, layer = null, root = null, el = {};
   const loop = createLoop(frame);
@@ -1011,7 +1537,7 @@ const Ludo = (() => {
     for (const p of players) for (const t of toks[p.color]) {
       if (t.step === -1) {
         const [ox, oy] = YARD[t.color], pad = PADS[t.id];
-        t.tx = (ox + pad[0]) * CELL; t.ty = (oy + pad[1]) * CELL; t.tr = CELL * .4; t.hit = CELL * .5;
+        t.tx = (ox + pad[0]) * CELL; t.ty = (oy + pad[1]) * CELL; t.tr = CELL * .5; t.hit = CELL * .55;
       } else if (t.step === 56) {
         (done[t.color] = done[t.color] || []).push(t);
       } else {
@@ -1024,7 +1550,7 @@ const Ludo = (() => {
       list.sort((a, b) => COLORS.indexOf(a.color) - COLORS.indexOf(b.color) || a.id - b.id);
       const slots = clusterSlots(list.length), [cx, cy] = tilePx(rc);
       list.forEach((t, i) => {
-        t.tx = cx + slots[i].dx * CELL; t.ty = cy + slots[i].dy * CELL; t.tr = slots[i].r * CELL;
+        t.tx = cx + slots[i].dx * CELL; t.ty = cy + slots[i].dy * CELL; t.tr = slots[i].r * CELL * 1.12;
         t.hit = Math.max(t.tr * 1.3, CELL * .3);
       });
     });
@@ -1137,7 +1663,8 @@ const Ludo = (() => {
     if (phase !== 'await-pick' || !movable.includes(t)) return;
     pend = null; phase = 'moving'; moving = t; movable = [];
     const from = t.step, to = from === -1 ? 0 : from + dice, c = t.color, k = spd(), sfx = fast() ? null : Sound.step;
-    t.step = to; computeTargets();
+    t.step = to; lastFrom = from; computeTargets();
+    if (from === -1) react('spawnMemes', 'main', 2, [{ tok: t, state: 'swagger' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
     if (from === -1) Motion.hop(t, ...tilePx(tileOf(c, 0)), .24 * k, CELL * .5, sfx);
     else for (let s = from + 1; s <= to; s++) {
       const [x, y] = s === 56 ? [t.tx, t.ty] : tilePx(tileOf(c, s));
@@ -1145,16 +1672,45 @@ const Ludo = (() => {
     }
     renderHud(); loop.kick();
   }
+  /* ---------- living-token reactions: audio-bound and NEVER blocking the turn flow ---------- */
+  const mates = (tok) => toks[tok.color].filter(m => m !== tok);
+  function react(cat, channel, priority, members) { if (fast() || frozen) return; Emotions.react({ cat, channel, priority, members }); }
+  function refreshDanger() {                           // tokens that just gained a rival 1-6 steps behind them
+    const fresh = [];
+    players.forEach(p => toks[p.color].forEach(t => {
+      const idx = t.step >= 0 && t.step <= 50 ? circleIdx(t.color, t.step) : -1;
+      const inDanger = idx >= 0 && !SAFE.has(idx) && threat(t.color, idx) > 0;
+      if (inDanger && !t.danger) fresh.push(t);
+      t.danger = inDanger;
+    }));
+    return fresh;
+  }
+  function reactMove(t, victims, from) {
+    const c = t.color;
+    if (victims.length) {
+      react('killMemes', 'main', 4, [{ tok: t, state: 'thug' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
+      const dm = [];
+      victims.forEach(v => { dm.push({ tok: v, state: 'rage' }); mates(v).forEach(m => { if (!dm.some(x => x.tok === m)) dm.push({ tok: m, state: Math.random() < .5 ? 'cry' : 'facepalm' }); }); });
+      react('deathMemes', 'aux', 4, dm);
+    } else if (t.step === 56) {
+      react('homeMemes', 'main', 3, [{ tok: t, state: 'ecstatic' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
+    } else if (from !== -1 && t.step >= 0 && t.step <= 50 && SAFE.has(circleIdx(c, t.step)) && threat(c, circleIdx(c, t.step)) > 0) {
+      react('safeMemes', 'main', 1, [{ tok: t, state: 'relief' }]);
+    }
+    const fresh = refreshDanger();
+    if (fresh.length) react('dangerMemes', 'main', 1, [{ tok: fresh[rint(0, fresh.length - 1)], state: 'panic' }]);
+  }
+
   function finishMove() {
     const t = moving; moving = null;
-    const c = t.color; let bonus = dice === 6;
+    const c = t.color; let bonus = dice === 6, killed = [];
     if (t.step >= 0 && t.step <= 50) {
       const idx = circleIdx(c, t.step);
       if (!SAFE.has(idx)) {
         const victims = opponentsAt(c, idx);
         if (victims.length) {
           const [x, y] = tilePx(PATH[idx]);
-          victims.forEach(v => { v.step = -1; });
+          victims.forEach(v => { v.step = -1; }); killed = victims;
           fx.push({ x, y, p: 0, color: HEX[victims[0].color] });
           bonus = true;
           if (!fast()) { Sound.cut(); Toast.show(`${NAME[c]} sent ${victims.length > 1 ? 'tokens' : NAME[victims[0].color]} back to the yard`); }
@@ -1163,16 +1719,42 @@ const Ludo = (() => {
     }
     if (t.step === 56) { bonus = true; if (!fast()) { Sound.ladder(); Toast.show(`${NAME[c]} token is home`); } }
     computeTargets();
+    reactMove(t, killed, lastFrom);
     if (toks[c].every(x => x.step === 56)) { finishPlayer(c); return; }
     endTurn(bonus);
   }
-  /* Ludo King style: play on until only one player is left; that player takes last place. */
+  /* Ludo King style: play on until only one player is left; that player takes last place.
+     1st and 2nd place trigger the disco: the game freezes for exactly the length of the victory track. */
   function finishPlayer(c) {
     finished.push(c);
+    const rank = finished.length;
     const left = players.filter(p => !isDone(p.color));
-    if (left.length <= 1) { if (left.length === 1) finished.push(left[0].color); win(); return; }
-    Sound.ladder(); Toast.show(`${NAME[c]} finished ${ORD[finished.length - 1]}`, 2400);
-    endTurn(false);                      // no bonus roll for the last token; nextTurn() skips finished seats
+    const over = left.length <= 1;
+    if (over && left.length === 1) finished.push(left[0].color);
+    const after = () => {
+      if (over) { win(); return; }
+      Sound.ladder(); Toast.show(`${NAME[c]} finished ${ORD[rank - 1]}`, 2400);
+      endTurn(false);                    // no bonus roll for the last token; nextTurn() skips finished seats
+    };
+    if (rank <= 2) partyThen(c, rank, after); else after();
+  }
+  function partyThen(c, rank, after) {
+    frozen = true; frozenAt = now(); phase = 'celebrating'; partyAfter = after; partyWinner = c;
+    renderHud('Party time!');
+    const ok = Disco.start({
+      board: $('.board', el.play), stage: $('.stage', el.play), rows: $$('.dock-row', el.play), rank,
+      label: `${MEDAL[rank - 1]} ${NAME[c]} finished ${ORD[rank - 1]}`, onEnd: partyEnd
+    });
+    if (!ok) partyEnd('unavailable');
+    loop.kick();
+  }
+  function partyEnd(reason) {                            // fired by the victory track's own 'ended' event (or skip / failure)
+    if (reason === 'unmount' || reason === 'reset') return;
+    frozen = false; partyWinner = null;
+    if (pend) pend.at += now() - frozenAt;               // timers that were pending resume where they left off
+    const f = partyAfter; partyAfter = null;
+    if (f) f();
+    loop.kick();
   }
   function endTurn(bonus) {
     movable = []; pend = null;
@@ -1197,7 +1779,7 @@ const Ludo = (() => {
     const p = players[turn], active = phase !== 'over' && phase !== 'setup';
     COLORS.forEach(c => {
       const pl = players.find(x => x.color === c), dock = el.docks[c], die = $('.die', dock);
-      const isTurn = !!(pl && active && p === pl);
+      const isTurn = !!(pl && active && p === pl && !isDone(c) && phase !== 'celebrating');
       dock.classList.toggle('is-off', !pl);
       dock.classList.toggle('is-active', isTurn);
       dock.disabled = !pl;
@@ -1218,6 +1800,7 @@ const Ludo = (() => {
     else if (phase === 'rolling') text = '…';
     else if (phase === 'await-pick') text = human ? 'Pick a token' : 'Choosing';
     else if (phase === 'moving') text = '';
+    else if (phase === 'celebrating') text = 'Party time!';
     else if (phase === 'over') text = 'Match over';
     el.status.textContent = text;
     el.dot.style.background = HEX[p.color]; el.dot.style.boxShadow = `0 0 12px ${HEX[p.color]}`;
@@ -1290,15 +1873,20 @@ const Ludo = (() => {
     const all = [];
     players.forEach(p => toks[p.color].forEach(t => all.push(t)));
     const isMov = (t) => phase === 'await-pick' && movable.includes(t);
-    all.sort((a, b) => (isMov(a) - isMov(b)) || ((a.y - a.lift) - (b.y - b.lift)));
+    const party = Disco.party(), amb = performance.now() / 1000;
+    all.sort((a, b) => (isMov(a) - isMov(b)) || (!!a.emo - !!b.emo) || ((a.y - a.lift) - (b.y - b.lift)));
     all.forEach(t => {
-      const m = isMov(t), bob = m ? Math.sin(pulse * 7) * 3 : 0;
+      const m = isMov(t), bob = m ? Math.sin(pulse * 7) * 3 : 0, win = partyWinner === t.color, ci = COLORS.indexOf(t.color);
       if (m) {
         g.beginPath(); g.arc(t.x, t.y - bob, t.r + 6, 0, TAU);
         g.fillStyle = `rgba(255,236,150,${.28 + .18 * Math.sin(pulse * 7)})`; g.fill();
         g.lineWidth = 2.5; g.strokeStyle = '#fff2a8'; g.stroke();
       }
-      drawGoti(g, t.x, t.y, t.r, HEX[t.color], { lift: t.lift + bob });
+      Faces.drawToken(g, {
+        x: (t.emo || party) ? clamp(t.x, t.r * 1.75, LOG - t.r * 1.75) : t.x, y: (t.emo || party) ? clamp(t.y, t.r * 1.9, LOG - t.r * 1.75) : t.y,
+        r: t.r, hex: HEX[t.color], id: t.id, lift: t.lift + bob, emo: t.emo, ambient: amb, k: B.k,
+        party: party && { beat: party.beat + (win ? 0 : t.id * .25 + ci * .5), level: party.level, pulse: party.pulse, winner: win, move: win ? 0 : t.id + ci }
+      });
     });
     fx.forEach(f => {
       g.beginPath(); g.arc(f.x, f.y, CELL * (.3 + f.p * .9), 0, TAU);
@@ -1310,17 +1898,19 @@ const Ludo = (() => {
   function frame(dt) {
     if (paused || !B || !players.length) return false;
     const t = now(); pulse += dt;
-    if (pend && t >= pend.at) { const f = pend.fn; pend = null; f(); }
-    if (phase === 'rolling') {
-      if (t >= rollUntil) finishRoll();
-      else if (t - flickAt > 70) { flickAt = t; showFace(cur().color, rint(1, 6)); }
+    if (!frozen) {                                     // the disco is the ONLY thing that freezes game logic
+      if (pend && t >= pend.at) { const f = pend.fn; pend = null; f(); }
+      if (phase === 'rolling') {
+        if (t >= rollUntil) finishRoll();
+        else if (t - flickAt > 70) { flickAt = t; showFace(cur().color, rint(1, 6)); }
+      }
     }
     let anim = false;
     players.forEach(p => toks[p.color].forEach(k => { if (Motion.update(k, dt, k.tx, k.ty, k.tr)) anim = true; }));
-    if (phase === 'moving' && moving && !Motion.busy(moving)) finishMove();
+    if (!frozen && phase === 'moving' && moving && !Motion.busy(moving)) finishMove();
     fx = fx.filter(f => (f.p += dt / .5) < 1);
     render();
-    return !!(pend || phase === 'rolling' || phase === 'moving' || phase === 'await-pick' || anim || fx.length);
+    return !!(pend || frozen || phase === 'rolling' || phase === 'moving' || phase === 'await-pick' || anim || fx.length || Emotions.busy() || Disco.active);
   }
 
   /* ---------- UI plumbing ---------- */
@@ -1345,7 +1935,7 @@ const Ludo = (() => {
   }
   function startMatch() {
     if (!seatsOk()) { paintStart(); Toast.show(activeSeats(cfg) < 2 ? 'Pick at least two seats' : 'At least one seat must be Human'); return; }
-    Modal.hide(); Celebrate.hide();
+    Modal.hide(); Celebrate.hide(); Voices.stopAll('reset'); Disco.abort('reset'); frozen = false; partyAfter = null; partyWinner = null;
     players = COLORS.filter(c => cfg[c] !== 'off').map(c => ({ color: c, type: cfg[c] }));
     toks = {};
     players.forEach(p => { toks[p.color] = [0, 1, 2, 3].map(id => ({ id, color: p.color, step: -1, ...Motion.make(), tx: 0, ty: 0, tr: 10, hit: 10 })); });
@@ -1388,11 +1978,15 @@ const Ludo = (() => {
       else if (a === 'resume') showPlay();
       else if (a === 'seats') showSetup();
       else if (a === 'restart') startMatch();
+      else if (a === 'skip-disco') Disco.skip();
     });
+    Emotions.bind(() => loop.kick());
     loop.start();
+    if (phase === 'celebrating' && partyAfter) partyEnd('resume');   // the party was interrupted by leaving the tab: pick the match back up
     if (ui === 'play' && players.length) showPlay(); else showSetup();
   }
   function unmount() {
+    Voices.stopAll('unmount'); Disco.abort('unmount'); Emotions.bind(null);
     loop.stop(); if (scope) scope.dispose(); scope = null; B = null; layer = null;
   }
   return { mount, unmount };
@@ -2792,7 +3386,7 @@ Router.register('carrom', Carrom);
    Boot
    ========================================================================== */
 Router.register('hub', { mount() {}, unmount() {} });
-document.addEventListener('pointerdown', () => Sound.unlock(), { once: true, passive: true });
+document.addEventListener('pointerdown', () => { Sound.unlock(); Voices.unlock(); }, { once: true, passive: true });
 $$('[data-go]').forEach(b => b.addEventListener('click', () => Router.go(b.dataset.go)));
 
 const soundBtn = $('#btn-sound');
@@ -2803,6 +3397,15 @@ const paintSound = () => {
 };
 soundBtn.addEventListener('click', () => { Sound.toggle(); paintSound(); });
 paintSound();
+
+const voicesBtn = $('#btn-voices');
+const paintVoices = () => {
+  voicesBtn.setAttribute('aria-pressed', String(Voices.enabled));
+  voicesBtn.setAttribute('aria-label', Voices.enabled ? 'Meme voices on' : 'Meme voices off');
+  $('use', voicesBtn).setAttribute('href', Voices.enabled ? '#i-voice' : '#i-voice-off');
+};
+voicesBtn.addEventListener('click', () => { Voices.toggle(); paintVoices(); Toast.show(Voices.enabled ? 'Meme voices on' : 'Meme voices off', 1000); });
+paintVoices();
 
 const fullBtn = $('#btn-full');
 if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) fullBtn.hidden = true;
