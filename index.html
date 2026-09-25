@@ -201,7 +201,7 @@ main{position:relative;min-height:0;min-width:0;overflow:hidden}
 @media (orientation:landscape) and (max-height:520px){
   .arena .dock-row{grid-template-columns:1fr 1fr}.arena .dock-row .center-col{grid-column:1 / -1;grid-row:1}
 }
-@media (max-width:430px){.brand{min-width:0}.brand-name{font-size:17px;overflow:hidden;text-overflow:ellipsis}.tools{gap:5px}.icon-btn{width:36px;height:36px}.tab{gap:4px;font-size:12px}.tab svg{width:1.1em;height:1.1em}}
+@media (max-width:430px){.topbar{padding:8px 8px}.brand{min-width:0;gap:7px}.brand-name{font-size:16.5px;overflow:hidden;text-overflow:ellipsis}.brand svg{width:28px;height:28px}.tools{gap:3px}.icon-btn{width:31px;height:31px}.tab{gap:4px;font-size:12px}.tab svg{width:1.1em;height:1.1em}}
 @media (max-width:380px){.brand-name{font-size:15px}.dock{padding:4px 5px 4px 8px;gap:6px}.dock.right{padding:4px 8px 4px 5px}.die{width:40px;height:40px;padding:7px}.dock .who b{font-size:13px}}
 
 /* ---------- Snakes HUD ---------- */
@@ -356,6 +356,7 @@ input[type=range]:disabled{opacity:.35}
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></symbol>
     <symbol id="i-voice" viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.8"/></symbol>
     <symbol id="i-voice-off" viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M3.5 3.5l17 17"/></symbol>
+    <symbol id="i-lang" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 4 5.7 4 9s-1.4 6.4-4 9c-2.6-2.6-4-5.7-4-9s1.4-6.4 4-9z"/></symbol>
     <symbol id="i-theme" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2-.5-1.3.2-2.5 1.7-2.5H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><path d="M7.5 11h.01M10 7.5h.01M14.5 7.5h.01" stroke-width="2.6"/></symbol>
   </defs>
 </svg>
@@ -368,6 +369,7 @@ input[type=range]:disabled{opacity:.35}
     </button>
     <div class="tools">
       <button class="icon-btn" id="btn-voices" aria-label="Meme voices on" aria-pressed="true"><svg class="i"><use href="#i-voice"/></svg></button>
+      <button class="icon-btn" id="btn-lang" aria-label="Meme voice language" hidden><svg class="i"><use href="#i-lang"/></svg></button>
       <button class="icon-btn" id="btn-sound" aria-label="Sound on" aria-pressed="true"><svg class="i"><use href="#i-sound"/></svg></button>
       <button class="icon-btn" id="btn-full" aria-label="Fullscreen"><svg class="i"><use href="#i-expand"/></svg></button>
     </div>
@@ -576,6 +578,19 @@ input[type=range]:disabled{opacity:.35}
   </main>
 </div>
 
+<div class="sheet" id="lang-sheet" hidden>
+  <div class="panel sheet-card">
+    <h3>Meme voices</h3>
+    <div class="field" id="lang-field"><span class="l">Language</span>
+      <div class="seg" id="lang-options" role="radiogroup" aria-label="Meme voice language" style="flex-wrap:wrap;height:auto;padding:4px"></div>
+    </div>
+    <div class="field" id="mode-field"><span class="l">Mode</span>
+      <div class="seg" id="mode-options" role="radiogroup" aria-label="Meme voice mode" style="flex-wrap:wrap;height:auto;padding:4px"></div>
+      <p class="hint" id="mode-hint" style="margin:2px 0 0">Legend Mode (18+) uses strong language.</p>
+    </div>
+    <div class="setup-actions"><button class="btn ghost" data-act="close" style="width:100%">Close</button></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="celebrate" id="celebrate" hidden role="dialog" aria-modal="true" aria-label="Match result">
   <div class="panel cel-card">
@@ -1012,9 +1027,33 @@ const Router = {
    Failure paths ('error', 'pause', blocked, start-watchdog) end the reaction the
    same way, so a token can never be stuck in an emotion.
    ========================================================================== */
+/* Batch-naming helper: for a folder of sequentially-numbered files (clip1.mp3, clip2.mp3, ...)
+   this builds the whole URL list for you, so you never have to paste thousands of links by hand.
+     memeSeq('https://cdn.jsdelivr.net/gh/USER/REPO@main/spawn/clip', 1, 240)
+       -> ['.../spawn/clip1.mp3', '.../spawn/clip2.mp3', ..., '.../spawn/clip240.mp3']
+   Options: {ext:'mp3', pad:0, start:1} — pad:3 turns clip1 into clip001 if your files are zero-padded;
+   start lets a folder begin at a number other than 1. */
+function memeSeq(baseUrl, from, to, opts = {}) {
+  const ext = opts.ext || 'mp3', pad = opts.pad || 0, out = [];
+  for (let i = from; i <= to; i++) out.push(baseUrl + String(i).padStart(pad, '0') + '.' + ext);
+  return out;
+}
+
 const MEMES_CONFIG = {
-  // Paste your hosted clip URLs (mp3 / m4a recommended). An empty pool falls back to a
-  // built-in placeholder clip, so every reaction still works before you add real audio.
+  // Paste your hosted clip URLs (mp3 / m4a recommended), or build a whole folder in one line with
+  // memeSeq() above. An empty pool falls back to a built-in placeholder clip, so every reaction
+  // still works before you add real audio.
+  //
+  // Example with thousands of files, one folder per emotion, sequentially numbered:
+  //   spawnMemes: memeSeq('https://cdn.jsdelivr.net/gh/USER/REPO@main/spawn/clip', 1, 300),
+  //
+  // 1st and 2nd place sharing the exact same celebration pool: point both keys at the same list -
+  //   const winMemes = memeSeq('https://cdn.jsdelivr.net/gh/USER/REPO@main/win/clip', 1, 500);
+  //   ... then use `winMemes` for both firstWinMemes and secondWinMemes below.
+  //
+  // EASIEST OPTION FOR A HUGE COLLECTION - see `github` below instead of filling this in by hand:
+  // upload a folder per emotion to a GitHub repo (any filenames, no renaming, no counting), and the
+  // game reads the folder itself every time it loads, so adding more files later needs no edit here.
   packs: {
     spawnMemes: [],      // a token leaves the yard (rolled a 6)
     killMemes: [],       // the killer laughs
@@ -1025,10 +1064,142 @@ const MEMES_CONFIG = {
     firstWinMemes: [],   // 1st place disco track (any length, ~10-16 s is typical)
     secondWinMemes: []   // 2nd place disco track
   },
+  // Auto-discovery from a GitHub repo: set enabled:true, fill in owner/repo, and this reads whatever
+  // audio files sit in each folder every time the game loads -- no renaming, no counting, and no
+  // editing this file again when you add more clips later, in this language or a new one.
+  //
+  // LANGUAGES: `languages` is a list of meme-voice languages. Right now there is just one (Hindi),
+  // so the in-game language picker stays hidden -- with only one option there is nothing to pick.
+  // To add another language later (say English), add ONE more line here:
+  //   { code: 'en', label: 'English', folder: 'english' }
+  // then upload an `english/` folder in the repo with the same seven sub-folders as `hindi/` below
+  // (spawn, kill, death, danger, safe, home, win). As soon as a second language exists, a small
+  // language button appears in the header on its own -- nothing else to wire up.
+  //
+  // Each language is one top-level folder containing the fixed sub-folder names listed in
+  // `subfolders`, e.g. for Hindi: hindi/spawn, hindi/kill, hindi/death, hindi/danger, hindi/safe,
+  // hindi/home, hindi/win -- put that language's own clips (any filenames) straight into those.
+  github: {
+    enabled: true,
+    owner: 'zidoflixyt',
+    repo: 'ludo-memes',
+    branch: 'main',             // change if your repo's default branch is called something else
+    languages: [
+      { code: 'hi', label: 'हिंदी', folder: 'hindi' }
+      // { code: 'en', label: 'English', folder: 'english' },  <- example of adding a 2nd language later
+    ],
+    // Two content ratings, fixed. 'normal' has no bad words and is what a new player hears by
+    // default -- nobody is opted into strong language without choosing it themselves. 'legend'
+    // (18+) is the same set of situations but with abusive/adult clips.
+    modes: [
+      { code: 'normal', label: 'Normal', folder: 'normal' },
+      { code: 'legend', label: 'Legend Mode (18+)', folder: 'legend' }
+    ],
+    defaultMode: 'normal',
+    // fixed sub-folder name used inside every language+mode folder above; 'win' is shared by both
+    // firstWinMemes and secondWinMemes, so 1st and 2nd place always draw from one pool of clips.
+    // Full path per pool ends up: <language folder>/<mode folder>/<subfolder>, e.g.
+    //   hindi/normal/spawn, hindi/legend/spawn, english/normal/spawn, english/legend/spawn ...
+    subfolders: {
+      spawnMemes: 'spawn',
+      killMemes: 'kill',
+      deathMemes: 'death',
+      dangerMemes: 'danger',
+      safeMemes: 'safe',
+      homeMemes: 'home',
+      firstWinMemes: 'win',
+      secondWinMemes: 'win'
+    }
+  },
   crossOrigin: false,    // true ONLY if your host sends CORS headers: enables real audio-level lip-sync + beat detection
   discoBpm: 96,          // dance beat is locked to playback position at this tempo when beat detection is unavailable
   startTimeoutMs: 6000   // network watchdog: a clip that has not started playing by then is abandoned (not a reaction timer)
 };
+
+/* Folder auto-discovery: asks GitHub what is inside each folder of the active language and fills
+   the matching pool with whatever audio files it finds there. Runs once in the background as soon
+   as the page loads (and again on demand if the player switches language); every pool silently
+   keeps using the placeholder clip until (and unless) its folder answers. A repo folder can hold
+   over a thousand files without any change here -- add more clips whenever, nothing to re-count. */
+const MemeSettings = (() => {
+  const gh = MEMES_CONFIG.github || {};
+  const languages = Array.isArray(gh.languages) ? gh.languages : [];
+  const modes = Array.isArray(gh.modes) ? gh.modes : [{ code: 'normal', label: 'Normal', folder: 'normal' }];
+  let curLang = store.get('bva.memeLang');
+  if (!languages.some((l) => l.code === curLang)) curLang = (languages[0] && languages[0].code) || null;
+  // Normal is always the one a player ends up with unless they deliberately pick Legend themselves --
+  // an unrecognised or missing saved value never silently resolves to the 18+ pool.
+  let curMode = store.get('bva.memeMode');
+  if (!modes.some((m) => m.code === curMode)) curMode = modes.some((m) => m.code === (gh.defaultMode || 'normal')) ? (gh.defaultMode || 'normal') : (modes[0] && modes[0].code);
+
+  // One-way fallback ONLY: a stricter mode (anything other than the safe default, i.e. Legend) may
+  // fall back to the default mode's clean clips for a situation it has no clips of its own for yet.
+  // The default ("normal") mode NEVER falls back to anything else -- if its own folder is empty or
+  // missing, that reaction just uses the built-in placeholder, full stop. Legend content can never
+  // reach a normal-mode player through this path or any other.
+  const safeMode = (gh.defaultMode && modes.some((m) => m.code === gh.defaultMode)) ? gh.defaultMode : (modes[0] && modes[0].code);
+  function fetchFolder(gh2, folder, cache) {
+    if (!cache[folder]) {
+      const AUDIO_EXT = /\.(mp3|m4a|wav|ogg|aac|opus|webm)$/i;
+      const path = folder.split('/').map(encodeURIComponent).join('/');
+      const api = `https://api.github.com/repos/${gh2.owner}/${gh2.repo}/contents/${path}?ref=${encodeURIComponent(gh2.branch || 'main')}`;
+      cache[folder] = fetch(api, { headers: { Accept: 'application/vnd.github+json' } })
+        .then((r) => { if (!r.ok) throw new Error('github ' + r.status); return r.json(); })
+        .then((items) => (Array.isArray(items) ? items : []).filter((it) => it.type === 'file' && AUDIO_EXT.test(it.name) && it.download_url).map((it) => it.download_url))
+        .catch(() => []);                                          // folder missing / repo private / offline: that pool just keeps using the placeholder
+    }
+    return cache[folder];
+  }
+  function load() {
+    const gh2 = MEMES_CONFIG.github;
+    if (!gh2 || !gh2.enabled || !gh2.owner || !gh2.repo) return;
+    const lang = languages.find((l) => l.code === curLang), mode = modes.find((m) => m.code === curMode);
+    if (!lang || !mode) return;
+    const wantLang = curLang, wantMode = curMode;                  // snapshot: a slow fetch must never overwrite a later switch
+    const cache = {};                                              // one fetch per distinct folder, even if pools share it (e.g. win)
+    const isSafe = mode.code === safeMode;
+    Object.keys(gh2.subfolders || {}).forEach((poolName) => {
+      const sub = gh2.subfolders[poolName];
+      if (!sub) return;
+      // Safe (Normal) mode: ONLY its own folder, always -- this is the one path that must never be
+      // able to surface Legend clips, so it has no merge and no fallback of any kind.
+      if (isSafe) {
+        fetchFolder(gh2, lang.folder + '/' + mode.folder + '/' + sub, cache).then((urls) => {
+          if (curLang === wantLang && curMode === wantMode && urls.length) MEMES_CONFIG.packs[poolName] = urls;
+        });
+        return;
+      }
+      // Any other mode (Legend): its own clips AND the safe mode's clips together, every time -- not
+      // a fallback used only when its own folder is empty, but the two pools combined as one, so a
+      // Legend-mode player hears the full mix rather than only ever getting the spicy-only subset.
+      const own = fetchFolder(gh2, lang.folder + '/' + mode.folder + '/' + sub, cache);
+      const base = fetchFolder(gh2, lang.folder + '/' + safeMode + '/' + sub, cache);
+      Promise.all([own, base]).then(([a, b]) => {
+        const merged = a.concat(b);
+        if (curLang === wantLang && curMode === wantMode && merged.length) MEMES_CONFIG.packs[poolName] = merged;
+      });
+    });
+  }
+  if (curLang) load();
+  return {
+    languages,                                                      // [{code,label,folder}, ...] for the picker UI
+    modes,                                                          // [{code,label,folder}, ...] for the picker UI
+    get language() { return curLang; },
+    get mode() { return curMode; },
+    selectLanguage(code) {
+      if (code === curLang || !languages.some((l) => l.code === code)) return;
+      curLang = code; store.set('bva.memeLang', code);
+      Object.keys(MEMES_CONFIG.packs).forEach((k) => { MEMES_CONFIG.packs[k] = []; });   // placeholders play instantly while the new folders load
+      load();
+    },
+    selectMode(code) {
+      if (code === curMode || !modes.some((m) => m.code === code)) return;
+      curMode = code; store.set('bva.memeMode', code);
+      Object.keys(MEMES_CONFIG.packs).forEach((k) => { MEMES_CONFIG.packs[k] = []; });
+      load();
+    }
+  };
+})();
 
 /* Smart non-repeating shuffle: a shuffled "bag" is emptied before refilling, and a refill can
    never start with the clip that was just played. */
@@ -3567,6 +3738,26 @@ const paintVoices = () => {
 };
 voicesBtn.addEventListener('click', () => { Voices.toggle(); paintVoices(); Toast.show(Voices.enabled ? 'Meme voices on' : 'Meme voices off', 1000); });
 paintVoices();
+
+const langBtn = $('#btn-lang'), langSheet = $('#lang-sheet'), langOpts = $('#lang-options'), langField = $('#lang-field'), modeOpts = $('#mode-options');
+if (MEMES_CONFIG.github.enabled && (MemeSettings.languages.length > 1 || MemeSettings.modes.length > 1)) {
+  langBtn.hidden = false;
+  langField.hidden = MemeSettings.languages.length < 2;            // only one language today: no point showing a single-option list
+  const paintPicker = () => {
+    langOpts.innerHTML = MemeSettings.languages.map((l) =>
+      `<button role="radio" data-lang="${l.code}" aria-checked="${l.code === MemeSettings.language}">${l.label}</button>`).join('');
+    modeOpts.innerHTML = MemeSettings.modes.map((m) =>
+      `<button role="radio" data-mode="${m.code}" aria-checked="${m.code === MemeSettings.mode}">${m.label}</button>`).join('');
+  };
+  langBtn.addEventListener('click', () => { paintPicker(); langSheet.hidden = false; });
+  langSheet.addEventListener('click', (e) => {
+    if (e.target === langSheet || e.target.closest('[data-act=close]')) { langSheet.hidden = true; return; }
+    const lb = e.target.closest('button[data-lang]');
+    if (lb) { MemeSettings.selectLanguage(lb.dataset.lang); paintPicker(); Toast.show((MemeSettings.languages.find((l) => l.code === lb.dataset.lang) || {}).label + ' selected', 1200); return; }
+    const mb = e.target.closest('button[data-mode]');
+    if (mb) { MemeSettings.selectMode(mb.dataset.mode); paintPicker(); Toast.show((MemeSettings.modes.find((m) => m.code === mb.dataset.mode) || {}).label + ' selected', 1200); }
+  });
+}
 
 const fullBtn = $('#btn-full');
 if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) fullBtn.hidden = true;
