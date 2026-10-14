@@ -588,6 +588,8 @@ input[type=range]:disabled{opacity:.35}
       <div class="seg" id="mode-options" role="radiogroup" aria-label="Meme voice mode" style="flex-wrap:wrap;height:auto;padding:4px"></div>
       <p class="hint" id="mode-hint" style="margin:2px 0 0">Legend Mode (18+) uses strong language.</p>
     </div>
+    <button class="btn" id="lang-refresh" style="width:100%">Refresh audio list</button>
+    <p class="hint" style="margin:-6px 0 0">Uploaded new clips? Tap this to load them right now.</p>
     <div class="setup-actions"><button class="btn ghost" data-act="close" style="width:100%">Close</button></div>
   </div>
 </div>
@@ -1059,10 +1061,16 @@ const MEMES_CONFIG = {
     killMemes: [],       // the killer laughs
     deathMemes: [],      // the captured token screams
     dangerMemes: [],     // a token has a rival 1-6 steps behind it
-    safeMemes: [],       // relief on a star square
+    safeMemes: [],       // relief on a star square (also reused for a rival's dice narrowly missing you)
     homeMemes: [],       // a token reaches the centre triangle
     firstWinMemes: [],   // 1st place disco track (any length, ~10-16 s is typical)
-    secondWinMemes: []   // 2nd place disco track
+    secondWinMemes: [],  // 2nd place disco track
+    lastPlaceMemes: [],  // the player left standing when everyone else has finished
+    nearMissMemes: [],   // the mover had a rival in range but rolled the wrong number
+    grudgeMemes: [],      // OPTIONAL: plays instead of killMemes/deathMemes on a 2nd+ capture of the
+                          // same rival by the same attacker this match; leave empty to just keep
+                          // using killMemes/deathMemes every time (nothing breaks either way)
+    schadenfreudeMemes: [] // a 3rd, uninvolved player reacts to two rivals fighting each other (3-4p only)
   },
   // Auto-discovery from a GitHub repo: set enabled:true, fill in owner/repo, and this reads whatever
   // audio files sit in each folder every time the game loads -- no renaming, no counting, and no
@@ -1096,6 +1104,7 @@ const MEMES_CONFIG = {
       { code: 'legend', label: 'Legend Mode (18+)', folder: 'legend' }
     ],
     defaultMode: 'normal',
+    cacheHours: 6,              // remember each folder's file list this long, so reloads don't hit GitHub's 60-requests/hour limit
     // fixed sub-folder name used inside every language+mode folder above; 'win' is shared by both
     // firstWinMemes and secondWinMemes, so 1st and 2nd place always draw from one pool of clips.
     // Full path per pool ends up: <language folder>/<mode folder>/<subfolder>, e.g.
@@ -1108,7 +1117,11 @@ const MEMES_CONFIG = {
       safeMemes: 'safe',
       homeMemes: 'home',
       firstWinMemes: 'win',
-      secondWinMemes: 'win'
+      secondWinMemes: 'win',
+      lastPlaceMemes: 'lastplace',
+      nearMissMemes: 'nearmiss',
+      grudgeMemes: 'grudge',
+      schadenfreudeMemes: 'schadenfreude'
     }
   },
   crossOrigin: false,    // true ONLY if your host sends CORS headers: enables real audio-level lip-sync + beat detection
@@ -1138,19 +1151,36 @@ const MemeSettings = (() => {
   // missing, that reaction just uses the built-in placeholder, full stop. Legend content can never
   // reach a normal-mode player through this path or any other.
   const safeMode = (gh.defaultMode && modes.some((m) => m.code === gh.defaultMode)) ? gh.defaultMode : (modes[0] && modes[0].code);
-  function fetchFolder(gh2, folder, cache) {
-    if (!cache[folder]) {
-      const AUDIO_EXT = /\.(mp3|m4a|wav|ogg|aac|opus|webm)$/i;
-      const path = folder.split('/').map(encodeURIComponent).join('/');
-      const api = `https://api.github.com/repos/${gh2.owner}/${gh2.repo}/contents/${path}?ref=${encodeURIComponent(gh2.branch || 'main')}`;
-      cache[folder] = fetch(api, { headers: { Accept: 'application/vnd.github+json' } })
-        .then((r) => { if (!r.ok) throw new Error('github ' + r.status); return r.json(); })
-        .then((items) => (Array.isArray(items) ? items : []).filter((it) => it.type === 'file' && AUDIO_EXT.test(it.name) && it.download_url).map((it) => it.download_url))
-        .catch(() => []);                                          // folder missing / repo private / offline: that pool just keeps using the placeholder
-    }
+  // GitHub allows only 60 anonymous API requests per hour per IP (and many phones share one IP), so each
+  // folder's file list is remembered on the device: a fresh copy is reused with zero network calls; a
+  // folder that came back empty is re-checked after 15 minutes (so newly uploaded clips show up soon); and
+  // if GitHub refuses (rate limit, offline) the last known list is used instead of falling silent.
+  const readCache = (key) => { try { return JSON.parse(store.get(key) || 'null'); } catch (e) { return null; } };
+  function fetchFolder(gh2, folder, cache, force) {
+    if (cache[folder]) return cache[folder];
+    const AUDIO_EXT = /\.(mp3|m4a|wav|ogg|aac|opus|webm)$/i;
+    const key = 'bva.gh.' + gh2.owner + '/' + gh2.repo + '@' + (gh2.branch || 'main') + '/' + folder;
+    const known = readCache(key);
+    const okList = known && Array.isArray(known.urls);
+    const ttl = okList && known.urls.length ? (gh2.cacheHours || 6) * 3600e3 : 15 * 60e3;
+    if (!force && okList && Date.now() - known.t < ttl) return (cache[folder] = Promise.resolve(known.urls));
+    const path = folder.split('/').map(encodeURIComponent).join('/');
+    const api = `https://api.github.com/repos/${gh2.owner}/${gh2.repo}/contents/${path}?ref=${encodeURIComponent(gh2.branch || 'main')}`;
+    cache[folder] = fetch(api, { headers: { Accept: 'application/vnd.github+json' } })
+      .then((r) => {
+        if (r.status === 404) return [];                            // a folder that doesn't exist yet is simply empty
+        if (!r.ok) throw new Error('github ' + r.status);           // rate limit / server trouble: don't treat as "empty"
+        return r.json();
+      })
+      .then((items) => {
+        const urls = (Array.isArray(items) ? items : []).filter((it) => it.type === 'file' && AUDIO_EXT.test(it.name) && it.download_url).map((it) => it.download_url);
+        store.set(key, JSON.stringify({ t: Date.now(), urls }));
+        return urls;
+      })
+      .catch(() => (okList ? known.urls : []));                     // refused or offline: last known list beats silence
     return cache[folder];
   }
-  function load() {
+  function load(force) {
     const gh2 = MEMES_CONFIG.github;
     if (!gh2 || !gh2.enabled || !gh2.owner || !gh2.repo) return;
     const lang = languages.find((l) => l.code === curLang), mode = modes.find((m) => m.code === curMode);
@@ -1164,7 +1194,7 @@ const MemeSettings = (() => {
       // Safe (Normal) mode: ONLY its own folder, always -- this is the one path that must never be
       // able to surface Legend clips, so it has no merge and no fallback of any kind.
       if (isSafe) {
-        fetchFolder(gh2, lang.folder + '/' + mode.folder + '/' + sub, cache).then((urls) => {
+        fetchFolder(gh2, lang.folder + '/' + mode.folder + '/' + sub, cache, force).then((urls) => {
           if (curLang === wantLang && curMode === wantMode && urls.length) MEMES_CONFIG.packs[poolName] = urls;
         });
         return;
@@ -1172,8 +1202,8 @@ const MemeSettings = (() => {
       // Any other mode (Legend): its own clips AND the safe mode's clips together, every time -- not
       // a fallback used only when its own folder is empty, but the two pools combined as one, so a
       // Legend-mode player hears the full mix rather than only ever getting the spicy-only subset.
-      const own = fetchFolder(gh2, lang.folder + '/' + mode.folder + '/' + sub, cache);
-      const base = fetchFolder(gh2, lang.folder + '/' + safeMode + '/' + sub, cache);
+      const own = fetchFolder(gh2, lang.folder + '/' + mode.folder + '/' + sub, cache, force);
+      const base = fetchFolder(gh2, lang.folder + '/' + safeMode + '/' + sub, cache, force);
       Promise.all([own, base]).then(([a, b]) => {
         const merged = a.concat(b);
         if (curLang === wantLang && curMode === wantMode && merged.length) MEMES_CONFIG.packs[poolName] = merged;
@@ -1191,6 +1221,10 @@ const MemeSettings = (() => {
       curLang = code; store.set('bva.memeLang', code);
       Object.keys(MEMES_CONFIG.packs).forEach((k) => { MEMES_CONFIG.packs[k] = []; });   // placeholders play instantly while the new folders load
       load();
+    },
+    refresh() {                                                      // re-read every folder now, ignoring the saved lists
+      Object.keys(MEMES_CONFIG.packs).forEach((k) => { MEMES_CONFIG.packs[k] = []; });
+      load(true);
     },
     selectMode(code) {
       if (code === curMode || !modes.some((m) => m.code === code)) return;
@@ -1290,7 +1324,30 @@ const Synth = (() => {
       return s;
     }),
     firstWinMemes: () => beat(12.6, MEMES_CONFIG.discoBpm, 0),
-    secondWinMemes: () => beat(9.4, MEMES_CONFIG.discoBpm, 1)
+    secondWinMemes: () => beat(9.4, MEMES_CONFIG.discoBpm, 1),
+    lastPlaceMemes: () => render(2.1, (t) => {                    // soft, descending, consoling -- not tragic
+      const f = 340 - 90 * Math.min(1, t / 1.6);
+      return (Math.sin(TAU * f * t) + .3 * Math.sin(TAU * f * 2 * t)) * .3 * Math.exp(-t * .9);
+    }),
+    nearMissMemes: () => render(1.1, (t) => {                     // a short, frustrated buzzy "argh"
+      const f = 180 - 40 * t;
+      return Math.sign(Math.sin(TAU * f * t)) * .18 * Math.exp(-t * 5) + N() * .06 * Math.exp(-t * 8);
+    }),
+    grudgeMemes: () => render(2.3, (t) => {                       // a spicier, harder-edged version of a kill/death beat
+      let s = 0;
+      [[.1, 200], [.5, 185], [.95, 170], [1.4, 155]].forEach(([st, f0]) => {
+        const u = t - st; if (u < 0 || u > .32) return;
+        const env = Math.sin(Math.PI * u / .32); let v = 0;
+        for (let k = 1; k <= 14; k++) v += Math.sin(TAU * f0 * k * u) * formant(f0 * k) / k;
+        s += v * env * 1.3;
+      });
+      return s * .55 + N() * .05;
+    }),
+    schadenfreudeMemes: () => render(1.6, (t) => {                // a mischievous little chuckle
+      let s = 0;
+      for (let i = 0; i < 4; i++) { const st = i * .28, u = t - st; if (u >= 0 && u < .22) s += Math.sin(TAU * (300 + i * 40) * u) * Math.exp(-u * 14); }
+      return s * .3;
+    })
   };
   return { url(cat) { if (!cache[cat]) cache[cat] = toWav((recipes[cat] || recipes.spawnMemes)()); return cache[cat]; } };
 })();
@@ -1727,6 +1784,8 @@ const Ludo = (() => {
   // Non-blocking social/emotion layer. These scenes are purely visual: they never
   // alter Ludo rules, timers, movement routes, or turn flow.
   let socialEvent = null, socialNextAt = 0, socialLastCapture = 0;
+  let grudges = {};                     // 'attackerColor>victimColor' -> capture count this match
+  let nearMissAt = -1e9;                // when a near-miss reaction last fired (keeps them rare enough to matter)
   let socialWake = null;                // separate from `pend`: wakes the idle loop just to check for ambient social events
   let scope = null, B = null, layer = null, root = null, el = {};
   const loop = createLoop(frame);
@@ -1882,6 +1941,20 @@ const Ludo = (() => {
     }));
     return n;
   }
+  function reachableWithDist(c, preStep) {       // [{tok, d}]: rivals this token could capture with a roll of exactly d
+    if (preStep < 0 || preStep > 50) return [];   // not from the yard, not already in the home stretch
+    const out = [];
+    for (let d = 1; d <= 6; d++) {
+      const to = preStep + d;
+      if (to > 50 || blockedAt(c, to)) continue;
+      const idx = circleIdx(c, to);
+      if (SAFE.has(idx)) continue;                 // landing here never captures, regardless of the roll
+      opponentsAt(c, idx).forEach(tok => out.push({ tok, d }));
+    }
+    return out;
+  }
+  const reachableEnemies = (c, preStep) => reachableWithDist(c, preStep).map(r => r.tok);
+
   function scoreMove(c, t) {
     const from = t.step, to = from === -1 ? 0 : from + dice; let s = 0;
     if (to <= 50) {
@@ -1952,6 +2025,7 @@ const Ludo = (() => {
     const from = t.step, to = from === -1 ? 0 : from + dice, c = t.color, k = spd(), sfx = fast() ? null : Sound.step;
     const fromIdx = from>=0 && from<=50 ? circleIdx(c,from) : -1;
     t.dangerBeforeMove = fromIdx>=0 && !SAFE.has(fromIdx) && threat(c,fromIdx)>0;
+    t.reachableBeforeMove = reachableWithDist(c, from);  // rivals this token COULD have captured (and the roll each needed), before any capture is resolved
     t.step = to; lastFrom = from; computeTargets();
     if (from === -1) react('spawnMemes', 'main', 2, [{ tok: t, state: 'swagger' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
     if (from === -1) Motion.hop(t, ...tilePx(tileOf(c, 0)), .24 * k, CELL * .5, sfx);
@@ -1989,13 +2063,24 @@ const Ludo = (() => {
     }));
     return fresh;
   }
-  function reactMove(t, victims, from, wasDanger=false) {
+  function reactMove(t, victims, from, wasDanger=false, reachableBefore=null) {
     const c = t.color;
     if (victims.length) {
-      react('killMemes', 'main', 4, [{ tok: t, state: 'thug' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
+      // Grudge: has THIS attacker captured THIS victim colour before, earlier in this same match?
+      let grudgeHit = false;
+      victims.forEach(v => { const key = c + '>' + v.color; grudges[key] = (grudges[key] || 0) + 1; if (grudges[key] >= 2) grudgeHit = true; });
+      const useGrudge = grudgeHit && MEMES_CONFIG.packs.grudgeMemes.length > 0;   // only switch tracks once real grudge clips exist
+      react(useGrudge ? 'grudgeMemes' : 'killMemes', 'main', 4, [{ tok: t, state: 'thug' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
       const dm = [];
       victims.forEach(v => { dm.push({ tok: v, state: 'rage' }); mates(v).forEach(m => { if (!dm.some(x => x.tok === m)) dm.push({ tok: m, state: Math.random() < .5 ? 'cry' : 'facepalm' }); }); });
-      react('deathMemes', 'aux', 4, dm);
+      react(useGrudge ? 'grudgeMemes' : 'deathMemes', 'aux', 4, dm);
+      // Schadenfreude: an uninvolved 3rd (or 4th) player enjoying two rivals fighting each other
+      const victimColors = new Set(victims.map(v => v.color));
+      const bystanders = players.filter(p => p.color !== c && !victimColors.has(p.color));
+      if (bystanders.length) {
+        const p3 = bystanders[rint(0, bystanders.length - 1)], tok3 = toks[p3.color][rint(0, 3)];
+        react('schadenfreudeMemes', 'aux2', 2, [{ tok: tok3, state: 'cheer' }]);
+      }
     } else if (t.step === 56) {
       react('homeMemes', 'main', 3, [{ tok: t, state: 'ecstatic' }, ...mates(t).map(m => ({ tok: m, state: 'cheer' }))]);
       const hs=toks[c].filter(x=>x.step===56);
@@ -2003,6 +2088,16 @@ const Ludo = (() => {
       else if(hs.length===3) beginSocial('homeCelebrate',hs,1.75);
     } else if (from !== -1 && wasDanger && isSafeLanding(c,t.step)) {
       react('safeMemes', 'main', 1, [{ tok: t, state: 'relief' }]);
+    } else if (from !== -1 && reachableBefore && reachableBefore.length) {
+      // Near miss = "so close": the roll was off by exactly ONE from the number that would have hit a rival
+      // (needed a 3, got a 2 or a 4). Any rival merely being somewhere in range happens on nearly every
+      // move of a busy board, which would turn this into noise -- so it also rests for a few seconds.
+      const close = reachableBefore.filter(r => Math.abs(r.d - dice) === 1);
+      if (close.length && now() - nearMissAt > 5000) {
+        nearMissAt = now();
+        react('nearMissMemes', 'main', 1, [{ tok: t, state: 'facepalm' }]);
+        react('safeMemes', 'aux', 1, [{ tok: close[rint(0, close.length - 1)].tok, state: 'relief' }]);
+      }
     }
     const fresh = refreshDanger();
     if (fresh.length) react('dangerMemes', 'main', 1, [{ tok: fresh[rint(0, fresh.length - 1)], state: 'panic' }]);
@@ -2027,8 +2122,8 @@ const Ludo = (() => {
     }
     if (t.step === 56) { bonus = true; if (!fast()) { Sound.ladder(); Toast.show(`${NAME[c]} token is home`); } }
     computeTargets();
-    reactMove(t, killed, lastFrom, !!t.dangerBeforeMove);
-    t.dangerBeforeMove = false;
+    reactMove(t, killed, lastFrom, !!t.dangerBeforeMove, t.reachableBeforeMove);
+    t.dangerBeforeMove = false; t.reachableBeforeMove = null;
     if(!killed.length && t.step>=0 && t.step<=50){
       const idx=circleIdx(c,t.step);
       if(SAFE.has(idx)){
@@ -2089,6 +2184,16 @@ const Ludo = (() => {
       ranks: finished.map(c => ({ name: NAME[c], hex: HEX[c], tag: players.find(p => p.color === c).type === 'bot' ? 'Bot' : 'You' })),
       primary: { label: 'Play again', fn: startMatch }, secondary: { label: 'Change seats', fn: showSetup }
     });
+    // Whoever finished last gets a gentle, consoling moment too -- not silence. It waits a beat so it
+    // doesn't fight the winner's fanfare, sits on its own audio channel (the winner's last home-arrival
+    // clip may still be on 'main'), and is skipped if the player has already tapped Play again.
+    const lastColor = finished[finished.length - 1];
+    if (finished.length > 1 && lastColor && scope) {
+      scope.timeout(() => {
+        if (phase !== 'over' || frozen || !toks[lastColor]) return;
+        Emotions.react({ cat: 'lastPlaceMemes', channel: 'aux2', priority: 2, members: toks[lastColor].slice(0, 2).map(tk => ({ tok: tk, state: 'cry' })) });
+      }, 1400);
+    }
   }
 
   /* ---------- HUD ---------- */
@@ -2271,7 +2376,7 @@ const Ludo = (() => {
     players = COLORS.filter(c => cfg[c] !== 'off').map(c => ({ color: c, type: cfg[c] }));
     toks = {};
     players.forEach(p => { toks[p.color] = [0, 1, 2, 3].map(id => ({ id, color: p.color, step: -1, ...Motion.make(), tx: 0, ty: 0, tr: 10, hit: 10 })); });
-    turn = 0; phase = 'await-roll'; dice = 6; sixes = 0; movable = []; lastRoll = {}; pend = null; moving = null; fx = []; bonusNote = false; finished = []; socialEvent = null; socialNextAt = now()+1800; socialLastCapture = 0; socialWake = null;
+    turn = 0; phase = 'await-roll'; dice = 6; sixes = 0; movable = []; lastRoll = {}; pend = null; moving = null; fx = []; bonusNote = false; finished = []; socialEvent = null; socialNextAt = now()+1800; socialLastCapture = 0; socialWake = null; grudges = {}; nearMissAt = -1e9;
     computeTargets(); snapAll();
     el.setup.hidden = true; el.play.hidden = false; ui = 'play'; paused = false;
     B.apply(); if (!layer) buildLayer();
@@ -3750,6 +3855,7 @@ if (MEMES_CONFIG.github.enabled && (MemeSettings.languages.length > 1 || MemeSet
       `<button role="radio" data-mode="${m.code}" aria-checked="${m.code === MemeSettings.mode}">${m.label}</button>`).join('');
   };
   langBtn.addEventListener('click', () => { paintPicker(); langSheet.hidden = false; });
+  $('#lang-refresh').addEventListener('click', () => { MemeSettings.refresh(); Toast.show('Refreshing audio list…', 1400); });
   langSheet.addEventListener('click', (e) => {
     if (e.target === langSheet || e.target.closest('[data-act=close]')) { langSheet.hidden = true; return; }
     const lb = e.target.closest('button[data-lang]');
